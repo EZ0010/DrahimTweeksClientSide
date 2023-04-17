@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authorize Drahim</title>
+</head>
+
+<body>
+    <button id="showDrahimAuth">Show Drahim Authorization</button>
+    <div id="drahimAuth" style="display: none;">
+        <h1>Authorize Drahim</h1>
+        <input type="text" id="phoneInput" placeholder="Enter Phone Number">
+
+        <button id="sendOTP">Send OTP</button>
+        <br>
+        <input type="text" id="otpInput" placeholder="Enter OTP">
+        <button id="verifyOTP">Verify OTP</button>
+        <br>
+        <input type="password" id="passwordInput" placeholder="Enter Password">
+        <button id="login">Login</button>
+        <p id="tokenDisplay">Access token not available.</p>
+        <p id="statusMessage">No access token stored.</p>
+    </div>
+
+    <input type="text" id="userIdInput" placeholder="Enter UserID">
+    <button id="fetchMessages">Fetch Messages</button>
+    <p id="messageStatus">No status yet.</p>
+
+
+    <script>
+        ///sending
+        const messageStatus = document.getElementById('messageStatus');
+        const userIdInput = document.getElementById('userIdInput');
+        const fetchMessagesButton = document.getElementById('fetchMessages');
+
+        const almubasherApiUrl = 'https://www.almubasher.com.sa/retail-mobile/ext/pushnotification/retainedMessages/INBOX/true/false/';
+        const drahimApiUrl = 'https://api.drahim.sa/v1/transactions/insert/sms?sync=true';
+
+        fetchMessagesButton.addEventListener('click', fetchMessages);
+
+        async function fetchMessages() {
+            const userId = userIdInput.value;
+            const response = await fetch(`${almubasherApiUrl}${userId}?count=10`);
+            const result = await response.json();
+
+            if (result.totalCount) {
+                const wantedTexts = result.msgs.map(msg => msg.msgBody);
+                const accessToken = localStorage.getItem('accessToken');
+
+                if (!accessToken) {
+                    messageStatus.textContent = 'Access token not available.';
+                    return;
+                }
+
+                const headers = {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`,
+                };
+
+                for (const wantedText of wantedTexts) {
+                    const data = { sms_body: wantedText };
+
+                    fetch(drahimApiUrl, {
+                        method: 'POST',
+                        headers: headers,
+                        body: JSON.stringify(data),
+                    })
+                        .then(response => response.json())
+                        .then(result => {
+                            messageStatus.textContent = 'SMS sent:', result;
+                        })
+                        .catch(error => {
+                            messageStatus.textContent = 'Error sending SMS:', error;
+                        });
+                }
+            } else {
+                messageStatus.textContent = 'Invalid UserID or no totalCount in response.';
+            }
+        }
+
+
+
+
+        const tokenDisplay = document.getElementById('tokenDisplay');
+        const phoneInput = document.getElementById('phoneInput');
+        const sendOTPButton = document.getElementById('sendOTP');
+        const verifyOTPButton = document.getElementById('verifyOTP');
+        const loginButton = document.getElementById('login');
+        const otpInput = document.getElementById('otpInput');
+        const passwordInput = document.getElementById('passwordInput');
+        const statusMessage = document.getElementById('statusMessage');
+        const sendOTPUrl = 'https://api.drahim.sa/v1/oauth/send_login_otp';
+        const verifyOTPUrl = 'https://api.drahim.sa/v1/oauth/verify_otp_for_login';
+        const loginUrl = 'https://api.drahim.sa/v1/oauth/login';
+        sendOTPButton.addEventListener('click', sendOTP);
+        verifyOTPButton.addEventListener('click', verifyOTP);
+        loginButton.addEventListener('click', login);
+
+
+        const drahimAuth = document.getElementById('drahimAuth');
+        const showDrahimAuthButton = document.getElementById('showDrahimAuth');
+
+        showDrahimAuthButton.addEventListener('click', () => {
+            if (drahimAuth.style.display === 'none') {
+                drahimAuth.style.display = 'block';
+                showDrahimAuthButton.textContent = 'Hide Drahim Authorization'; // Update the button text when Drahim authorization is shown
+            } else {
+                drahimAuth.style.display = 'none';
+                showDrahimAuthButton.textContent = 'Show Drahim Authorization'; // Update the button text when Drahim authorization is hidden
+            }
+        });
+
+
+        function updateTokenDisplay() {
+            const accessToken = localStorage.getItem('accessToken');
+            if (accessToken) {
+                tokenDisplay.textContent = 'Access token: ' + accessToken;
+            } else {
+                tokenDisplay.textContent = 'Access token not available.';
+            }
+        }
+
+        function sendOTP() {
+            const data = { phone: phoneInput.value };
+
+            fetch(sendOTPUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
+            })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.data === 'OTP sent successfully') {
+                        statusMessage.textContent = 'OTP sent successfully.';
+                    } else {
+                        statusMessage.textContent = 'Failed to send OTP.';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    statusMessage.textContent = 'Failed to send OTP.';
+                });
+        }
+
+        function verifyOTP() {
+            const data = { otp: otpInput.value, phone: phoneInput.value };
+
+            fetch(verifyOTPUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
+            })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.data === 'otp is valid') {
+                        statusMessage.textContent = 'OTP is valid. Please enter your password.';
+                    } else {
+                        statusMessage.textContent = 'OTP is not valid.';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    statusMessage.textContent = 'OTP is not valid.';
+                });
+        }
+
+        function login() {
+            const data = { password: passwordInput.value, phone: phoneInput.value };
+
+            fetch(loginUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
+            })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.data && result.data.authorization && result.data.authorization.access_token) {
+                        localStorage.setItem('accessToken', result.data.authorization.access_token);
+                        statusMessage.textContent = 'Login successful. Access token stored.';
+                    } else {
+                        statusMessage.textContent = 'Login failed.';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    statusMessage.textContent = 'Login failed.';
+                });
+        }
+        updateTokenDisplay();
+    </script>
+</body>
+
+</html>
