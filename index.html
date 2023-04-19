@@ -1,196 +1,159 @@
 <!DOCTYPE html>
-<html lang="en">
+<html data-bs-theme="light">
 
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Authorize Drahim</title>
+    <title>Drahim Tweeks</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
 </head>
 
 <body>
-    <button id="showDrahimAuth">Show Drahim Authorization</button>
-    <div id="drahimAuth" style="display: none;">
-        <h1>Authorize Drahim</h1>
-        <input type="text" id="phoneInput" placeholder="Enter Phone Number">
-
-        <button id="sendOTP">Send OTP</button>
-        <br>
-        <input type="text" id="otpInput" placeholder="Enter OTP">
-        <button id="verifyOTP">Verify OTP</button>
-        <br>
-        <input type="password" id="passwordInput" placeholder="Enter Password">
-        <button id="login">Login</button>
-        <p id="tokenDisplay">Access token not available.</p>
-        <p id="statusMessage">No access token stored.</p>
+    <div class="col-lg-4 mx-auto px-4 py-1 my-5">
+        <div class="mb-2 text-center">
+            <img src="drahimplus.svg" style="height: 50px;" alt="">
+            <h1 class="display-5 fw-bold text-body-emphasis text-center mb-3">Drahim Tweaks</h1>
+            <p class="lead mb-4">Link your Drahim Account to
+                <span id="thebluebank"> <span class="fst-italic" style="color: #221afb;">TheBlueBank</span> <img
+                        src="bluebanklogo.svg" style="height: 20px;" alt=""></span>
+                directly using an unofficial yet <span class="fst-italic fw-medium dark">safe</span> api. <a href="#"
+                    data-bs-toggle="modal" data-bs-target="#howModal">How safe?</a>
+            </p>
+        </div>
+        <div class="border border-1 border-dark-subtle rounded-4 shadow">
+            <div class="p-3">
+                <p id="statusMessage" class="alert d-none">...</p>
+                <div>
+                    <div id="tokenDisplay">Lets get you authenticated, this webstie needs Javascript to run without
+                        issues.</div>
+                    <!-- <h5>Link drahim account</h5> -->
+                    <div id="phoneInputWrapper" class="d-none">
+                        <input type="tel" class="form-control" id="phoneInput"
+                            placeholder="Enter your phone number in any format" pattern="[0-9]*" data-1p-ignore>
+                        <button id="sendOTP" class="btn btn-primary mt-2">Send OTP</button>
+                    </div>
+                    <div id="otpInputWrapper" class="d-none">
+                        <input type="text" auto-complete="one-time-code" id="otpInput" class="form-control"
+                            placeholder="Enter OTP" pattern="[0-9]*" data-1p-ignore>
+                        <button id="verifyOTP" class="btn btn-primary mt-2">Verify OTP</button>
+                    </div>
+                    <div id="phoneOtpInputWrapper" class="d-none">
+                        <input type="number" id="passwordInput" class="form-control" placeholder="Enter Password"
+                            pattern="[0-9]*" data-1p-ignore>
+                        <button id="login" class="btn btn-primary mt-2">Login</button>
+                    </div>
+                </div>
+                <div id="blueBankWrapper" class="d-none">
+                    <hr>
+                    <div id="blueBankWrapperInput" class="d-none">
+                        <label for="userIdInput" class="col-form-label">Enter The Blue Bank Token</label>
+                        <input type="text" id="userIdInput" class="form-control" placeholder="Enter UserID"
+                            data-1p-ignore>
+                    </div>
+                    <label for="countInput" class="col-form-label">Number transactions to parse from TheBlueBank</label>
+                    <input type="number" class="form-control" id="countInput" min="1" max="40" placeholder="10"
+                        pattern="[0-9]*" data-1p-ignore>
+                    <button id="fetchMessages" class="btn btn-success w-100 mt-3">Fetch Messages</button>
+                    <div class="mt-3">
+                        <p id="messageStatus"></p>
+                    </div>
+                </div>
+                <div id="clearStoragewrapper" class="d-none">
+                    <hr>
+                    <div class="d-flex justify-content-center">
+                        <button id="clearStorageButton" class="btn btn-danger btn-sm text-center">Clear Local
+                            Storage</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+    <div class="d-flex justify-content-center">
+        <span class="me-2">Light</span>
+        <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="themeSwitch">
+        </div>
+        <span>Dark</span>
+    </div>
+    <footer class="py-3 my-4 text-center text-body-secondary col-lg-4 mx-auto">
+        <small>
+            &copy; 2023 <a href="http://twitter.com/bitcoin_info_ar">Chancellor</a>.
+            <br>
+            This project is 100% open source. Check it out on
+            <a href="https://github.com/EZ0010/DrahimTweeksClientSide" target="_blank"
+                rel="noopener noreferrer">GitHub</a>.
+            <br>
+            The script runs client-side, your keys or tokens will never leave your device.
+            You can download this page and run it locally for added security.
+            <a href="#" data-bs-toggle="modal" data-bs-target="#declamerModal">Declamer</a>
+        </small>
 
-    <input type="text" id="userIdInput" placeholder="Enter UserID">
-    <button id="fetchMessages">Fetch Messages</button>
-    <p id="messageStatus">No status yet.</p>
-
-
-    <script>
-        ///sending
-        const messageStatus = document.getElementById('messageStatus');
-        const userIdInput = document.getElementById('userIdInput');
-        const fetchMessagesButton = document.getElementById('fetchMessages');
-
-        const almubasherApiUrl = 'https://www.almubasher.com.sa/retail-mobile/ext/pushnotification/retainedMessages/INBOX/true/false/';
-        const drahimApiUrl = 'https://api.drahim.sa/v1/transactions/insert/sms?sync=true';
-
-        fetchMessagesButton.addEventListener('click', fetchMessages);
-
-        async function fetchMessages() {
-            const userId = userIdInput.value;
-            const response = await fetch(`${almubasherApiUrl}${userId}?count=10`);
-            const result = await response.json();
-
-            if (result.totalCount) {
-                const wantedTexts = result.msgs.map(msg => msg.msgBody);
-                const accessToken = localStorage.getItem('accessToken');
-
-                if (!accessToken) {
-                    messageStatus.textContent = 'Access token not available.';
-                    return;
-                }
-
-                const headers = {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${accessToken}`,
-                };
-
-                for (const wantedText of wantedTexts) {
-                    const data = { sms_body: wantedText };
-
-                    fetch(drahimApiUrl, {
-                        method: 'POST',
-                        headers: headers,
-                        body: JSON.stringify(data),
-                    })
-                        .then(response => response.json())
-                        .then(result => {
-                            messageStatus.textContent = 'SMS sent:', result;
-                        })
-                        .catch(error => {
-                            messageStatus.textContent = 'Error sending SMS:', error;
-                        });
-                }
-            } else {
-                messageStatus.textContent = 'Invalid UserID or no totalCount in response.';
-            }
-        }
+    </footer>
 
 
-
-
-        const tokenDisplay = document.getElementById('tokenDisplay');
-        const phoneInput = document.getElementById('phoneInput');
-        const sendOTPButton = document.getElementById('sendOTP');
-        const verifyOTPButton = document.getElementById('verifyOTP');
-        const loginButton = document.getElementById('login');
-        const otpInput = document.getElementById('otpInput');
-        const passwordInput = document.getElementById('passwordInput');
-        const statusMessage = document.getElementById('statusMessage');
-        const sendOTPUrl = 'https://api.drahim.sa/v1/oauth/send_login_otp';
-        const verifyOTPUrl = 'https://api.drahim.sa/v1/oauth/verify_otp_for_login';
-        const loginUrl = 'https://api.drahim.sa/v1/oauth/login';
-        sendOTPButton.addEventListener('click', sendOTP);
-        verifyOTPButton.addEventListener('click', verifyOTP);
-        loginButton.addEventListener('click', login);
-
-
-        const drahimAuth = document.getElementById('drahimAuth');
-        const showDrahimAuthButton = document.getElementById('showDrahimAuth');
-
-        showDrahimAuthButton.addEventListener('click', () => {
-            if (drahimAuth.style.display === 'none') {
-                drahimAuth.style.display = 'block';
-                showDrahimAuthButton.textContent = 'Hide Drahim Authorization'; // Update the button text when Drahim authorization is shown
-            } else {
-                drahimAuth.style.display = 'none';
-                showDrahimAuthButton.textContent = 'Show Drahim Authorization'; // Update the button text when Drahim authorization is hidden
-            }
-        });
-
-
-        function updateTokenDisplay() {
-            const accessToken = localStorage.getItem('accessToken');
-            if (accessToken) {
-                tokenDisplay.textContent = 'Access token: ' + accessToken;
-            } else {
-                tokenDisplay.textContent = 'Access token not available.';
-            }
-        }
-
-        function sendOTP() {
-            const data = { phone: phoneInput.value };
-
-            fetch(sendOTPUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data),
-            })
-                .then(response => response.json())
-                .then(result => {
-                    if (result.data === 'OTP sent successfully') {
-                        statusMessage.textContent = 'OTP sent successfully.';
-                    } else {
-                        statusMessage.textContent = 'Failed to send OTP.';
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    statusMessage.textContent = 'Failed to send OTP.';
-                });
-        }
-
-        function verifyOTP() {
-            const data = { otp: otpInput.value, phone: phoneInput.value };
-
-            fetch(verifyOTPUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data),
-            })
-                .then(response => response.json())
-                .then(result => {
-                    if (result.data === 'otp is valid') {
-                        statusMessage.textContent = 'OTP is valid. Please enter your password.';
-                    } else {
-                        statusMessage.textContent = 'OTP is not valid.';
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    statusMessage.textContent = 'OTP is not valid.';
-                });
-        }
-
-        function login() {
-            const data = { password: passwordInput.value, phone: phoneInput.value };
-
-            fetch(loginUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data),
-            })
-                .then(response => response.json())
-                .then(result => {
-                    if (result.data && result.data.authorization && result.data.authorization.access_token) {
-                        localStorage.setItem('accessToken', result.data.authorization.access_token);
-                        statusMessage.textContent = 'Login successful. Access token stored.';
-                    } else {
-                        statusMessage.textContent = 'Login failed.';
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    statusMessage.textContent = 'Login failed.';
-                });
-        }
-        updateTokenDisplay();
-    </script>
+    <div class="modal fade" id="declamerModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">Declamer</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    - TheBlueBank logo referenced in this content belongs to TheBlueBank and is used for illustrative
+                    purposes only.
+                    <br>
+                    - Drahim logo referenced in this content belongs to Drahim and is used for illustrative purposes
+                    only.
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="howModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">How safe?</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>
+                    <h5>Security for TheBlueBank</h5>
+                    TheBlueBank provides an endpoint that displays user notifications without requiring authentication.
+                    This allows you to view your transactions without the need to login to your bank account.
+                    it is safe as its only scope is only to view user transactions notifications.
+                    <br>
+                    This script utilizes that endpoint and parses the transactions and send them to Drahim as an SMS
+                    messgae (just like their shotcut), which will add the transactions to your Drahim account.
+                    This API is safe as the TheBlueBank only shows transactions from your account and not other
+                    sensative infomration, In fact, this method is even <span class="fw-bold">safer</span> than the
+                    method currenly used by Drahim, as the endpoint does not expose any OTP codes.
+                    </p>
+                    <h5>Security for your Drahim account</h5>
+                    Unfortunately, Drahim doesn't have an offical api (yet!) so this script will act like drahim app, it
+                    will send a request to Drahim app for authentication and save the access token, the good thing is,
+                    the keys <span class="fw-bold">WILL NEVER leave your device,</span> everything in this page will run
+                    on client-side.
+                    <br>
+                    <br>
+                    The TheBlueBank api will return only the infomration in this pic:
+                    <img src="4.jpeg" alt="" width="100%">
+                    <br>
+                    <br>
+                    <h5>How to get TheBlueBank token?</h5>
+                    to link your BlueBank account follow these steps:
+                    <br>
+                    1: <br><img src="1.jpeg" alt="" width="100%">
+                    2: <br><img src="2.jpeg" alt="" width="100%">
+                    3: <br><img src="3.jpeg" alt="" width="100%">
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe"
+        crossorigin="anonymous"></script>
 </body>
 
 </html>
