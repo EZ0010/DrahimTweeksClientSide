@@ -11,9 +11,9 @@
 const almubasherApi = 'https://www.almubasher.com.sa/retail-mobile/ext/pushnotification/retainedMessages/INBOX/true/false/';
 const drahimApi = 'https://api.drahim.sa';
 const drahimInsert = drahimApi + '/v1/transactions/insert/sms?sync=true';
-const drahimSendOTP = drahimApi + '/v1/oauth/send_login_otp';
+const drahimSendOTP = drahimApi + '/v1/oauth/login_direction';
 const drahimVerifyOTP = drahimApi + '/v1/oauth/verify_otp_for_login';
-const drahimLogin = drahimApi + '/v1/oauth/login_direction';
+const drahimLogin = drahimApi + '/v1/oauth/login';
 const drahimRefreshToken = drahimApi + '/v1/oauth/refresh';
 const clearStorageButton = document.querySelector('#clearStorageButton');
 const messageStatus = document.querySelector('#messageStatus');
